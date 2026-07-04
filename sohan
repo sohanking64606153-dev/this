@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EarnPro Rewards</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Monetag Reward Interstitial SDK -->
+    <script src='https://libtl.com/sdk.js' data-zone='11219923' data-sdk='show_11219923' data-cfasync='false' async='async'></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617; /* slate-950 */
+            color: #f8fafc;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-premium {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            transition: transform 0.1s ease;
+        }
+
+        .btn-premium:active {
+            transform: scale(0.96);
+        }
+
+        .switch-toggle:checked + .switch-label {
+            background-color: #10b981;
+        }
+
+        /* Hide Scrollbars */
+        ::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Screen 1: Welcome/Auth -->
+    <section id="screen-auth" class="flex-1 flex flex-col justify-center px-6 py-10">
+        <div class="text-center mb-10">
+            <div class="w-20 h-20 bg-indigo-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h1 class="text-3xl font-bold tracking-tight">EarnPro</h1>
+            <p class="text-slate-400 mt-2">Premium Reward Ecosystem</p>
+        </div>
+
+        <div class="glass-card p-6 rounded-3xl space-y-4">
+            <div>
+                <label class="text-xs font-semibold text-slate-400 uppercase ml-1">Full Name</label>
+                <input type="text" id="auth-name" placeholder="Enter your name" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 mt-1 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+            </div>
+            <div>
+                <label class="text-xs font-semibold text-slate-400 uppercase ml-1">Email Address</label>
+                <input type="email" id="auth-email" placeholder="email@example.com" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 mt-1 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+            </div>
+            <button onclick="handleLogin()" class="w-full btn-premium py-4 rounded-xl font-bold text-white shadow-xl mt-4">
+                Enter App
+            </button>
+        </div>
+    </section>
+
+    <!-- Screen 2: Regular User Dashboard -->
+    <section id="screen-dashboard" class="hidden flex-1 flex flex-col">
+        <!-- Top Bar -->
+        <header class="p-6 flex justify-between items-center bg-slate-900/50 border-b border-white/5 sticky top-0 z-10 backdrop-blur-md">
+            <div>
+                <p class="text-xs text-slate-400">Welcome back,</p>
+                <h2 id="display-name" class="font-bold text-lg text-white">User</h2>
+            </div>
+            <div class="text-right">
+                <p class="text-xs text-slate-400 uppercase">Balance</p>
+                <p class="text-xl font-black text-indigo-400"><span id="balance-counter">0</span> <span class="text-xs">PTS</span></p>
+            </div>
+        </header>
+
+        <main class="p-6 space-y-6">
+            <!-- Ad Section -->
+            <div class="glass-card p-6 rounded-3xl text-center">
+                <p class="text-slate-300 mb-4">Earn 10 Points for every video ad</p>
+                <button onclick="watchAd()" class="w-full bg-white text-slate-950 font-bold py-4 rounded-2xl flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                    </svg>
+                    Watch Ad (Earn +10)
+                </button>
+                
+                <div class="flex items-center justify-between mt-6 pt-6 border-t border-white/5">
+                    <div class="text-left">
+                        <p class="font-semibold">Auto Ad Mode</p>
+                        <p class="text-xs text-slate-500">Run background rewards</p>
+                    </div>
+                    <div class="relative inline-block w-12 mr-2 align-middle select-none">
+                        <input type="checkbox" name="toggle" id="auto-ad-toggle" onchange="toggleAutoAd(this.checked)" class="switch-toggle absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 right-6 checked:right-0"/>
+                        <label for="auto-ad-toggle" class="switch-label block overflow-hidden h-6 rounded-full bg-slate-700 cursor-pointer transition-all duration-300"></label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Withdraw Form -->
+            <div class="glass-card p-6 rounded-3xl">
+                <h3 class="font-bold text-lg mb-4">Withdraw Rewards</h3>
+                <div class="space-y-3">
+                    <input type="number" id="withdraw-points" placeholder="Points (Min 500)" class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 outline-none">
+                    <select id="withdraw-method" class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 outline-none">
+                        <option value="Bkash">Bkash</option>
+                        <option value="Nagad">Nagad</option>
+                        <option value="Rocket">Rocket</option>
+                    </select>
+                    <input type="tel" id="withdraw-phone" placeholder="Phone Number" class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 outline-none">
+                    <button onclick="handleWithdraw()" class="w-full bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-bold py-3 rounded-xl mt-2">
+                        Submit Request
+                    </button>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <!-- Screen 3: Premium Admin Panel -->
+    <section id="screen-admin" class="hidden flex-1 flex flex-col">
+        <header class="p-6 bg-slate-900 border-b border-indigo-500/30 flex justify-between items-center">
+            <h2 class="font-black text-xl text-indigo-400 uppercase tracking-widest">Admin Control</h2>
+            <button onclick="logout()" class="text-xs bg-red-500/10 text-red-500 px-3 py-1 rounded-lg border border-red-500/20">Logout</button>
+        </header>
+
+        <main class="p-4 space-y-4">
+            <!-- Admin Stats -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="glass-card p-4 rounded-2xl">
+                    <p class="text-xs text-slate-400">Total Users</p>
+                    <p class="text-2xl font-bold">1,284</p>
+                </div>
+                <div class="glass-card p-4 rounded-2xl">
+                    <p class="text-xs text-slate-400">Pending</p>
+                    <p class="text-2xl font-bold text-yellow-500">42</p>
+                </div>
+            </div>
+
+            <!-- Withdrawal Table -->
+            <div class="glass-card rounded-2xl overflow-hidden">
+                <div class="p-4 border-b border-white/5 bg-white/5">
+                    <h3 class="font-bold text-sm">Withdrawal Requests</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="text-slate-500 border-b border-white/5">
+                                <th class="p-4">User</th>
+                                <th class="p-4">Amount</th>
+                                <th class="p-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body">
+                            <!-- JS will inject rows here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <script>
+        // --- Configuration & State ---
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        let userState = {
+            name: "",
+            email: "",
+            balance: 0,
+            autoAdTimer: null
+        };
+
+        // --- Navigation Logic ---
+        function showScreen(screenId) {
+            document.getElementById('screen-auth').classList.add('hidden');
+            document.getElementById('screen-dashboard').classList.add('hidden');
+            document.getElementById('screen-admin').classList.add('hidden');
+            
+            document.getElementById(screenId).classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        // --- Authentication ---
+        function handleLogin() {
+            const name = document.getElementById('auth-name').value.trim();
+            const email = document.getElementById('auth-email').value.trim();
+
+            if (!name || !email) {
+                tg.showAlert("Please fill in all fields.");
+                return;
+            }
+
+            // Admin Bypass Check
+            if (email.toLowerCase() === "admin@earn.com") {
+                const pass = prompt("Enter Admin Password:");
+                if (pass === "সোহান১২") {
+                    renderAdminTable();
+                    showScreen('screen-admin');
+                    return;
+                } else {
+                    tg.showAlert("Invalid Admin Password!");
+                    return;
+                }
+            }
+
+            // Regular User Entry
+            userState.name = name;
+            userState.email = email;
+            document.getElementById('display-name').innerText = name;
+            showScreen('screen-dashboard');
+            tg.HapticFeedback.impactOccurred('light');
+        }
+
+        function logout() {
+            userState.name = "";
+            userState.email = "";
+            showScreen('screen-auth');
+        }
+
+        // --- User Dashboard Features ---
+        function updateBalance(amount) {
+            userState.balance += amount;
+            document.getElementById('balance-counter').innerText = userState.balance;
+            tg.HapticFeedback.impactOccurred('medium');
+        }
+
+        function watchAd() {
+            // Check if Monetag function exists
+            if (typeof show_11219923 === 'function') {
+                show_11219923().then(() => {
+                    // Ad shown and closed
+                    updateBalance(10);
+                    tg.showConfirm("Success! 10 points added to your balance.");
+                }).catch((e) => {
+                    tg.showAlert("Ad failed to load. Please try again later.");
+                });
+            } else {
+                // Fallback for development/testing
+                tg.showAlert("Ad engine initializing... Please wait 5 seconds.");
+                setTimeout(() => updateBalance(10), 2000);
+            }
+        }
+
+        function toggleAutoAd(isActive) {
+            if (isActive) {
+                tg.showAlert("Auto Ad Mode Enabled. You will see ads periodically.");
+                userState.autoAdTimer = setInterval(() => {
+                    if (typeof show_11219923 === 'function') {
+                        show_11219923().then(() => updateBalance(10));
+                    }
+                }, 60000); // Trigger every 60 seconds
+            } else {
+                clearInterval(userState.autoAdTimer);
+                tg.showAlert("Auto Ad Mode Disabled.");
+            }
+        }
+
+        function handleWithdraw() {
+            const pts = parseInt(document.getElementById('withdraw-points').value);
+            const method = document.getElementById('withdraw-method').value;
+            const phone = document.getElementById('withdraw-phone').value;
+
+            if (!pts || pts < 500) {
+                tg.showAlert("Minimum withdrawal is 500 PTS.");
+                return;
+            }
+            if (!phone || phone.length < 10) {
+                tg.showAlert("Please enter a valid phone number.");
+                return;
+            }
+            if (userState.balance < pts) {
+                tg.showAlert("Insufficient balance.");
+                return;
+            }
+
+            userState.balance -= pts;
+            document.getElementById('balance-counter').innerText = userState.balance;
+            tg.showAlert(`Request Sent! ${pts} PTS to ${method} (${phone}). Will be processed in 24h.`);
+        }
+
+        // --- Admin Panel Features ---
+        function renderAdminTable() {
+            const dummyRequests = [
+                { id: 1, user: "Karim Ahmed", amount: "1200 PTS", method: "Bkash" },
+                { id: 2, user: "Sara Khan", amount: "850 PTS", method: "Nagad" },
+                { id: 3, user: "Rahul Dev", amount: "500 PTS", method: "Rocket" }
+            ];
+
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = "";
+
+            dummyRequests.forEach(req => {
+                const row = `
+                    <tr class="border-b border-white/5">
+                        <td class="p-4">
+                            <div class="font-bold">${req.user}</div>
+                            <div class="text-slate-500">${req.method}</div>
+                        </td>
+                        <td class="p-4 font-mono text-indigo-400">${req.amount}</td>
+                        <td class="p-4">
+                            <div class="flex gap-2">
+                                <button onclick="adminAction(${req.id}, 'Approved')" class="bg-emerald-500 px-2 py-1 rounded text-white text-[10px]">Approve</button>
+                                <button onclick="adminAction(${req.id}, 'Rejected')" class="bg-red-500 px-2 py-1 rounded text-white text-[10px]">Reject</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        function adminAction(id, status) {
+            tg.showConfirm(`Are you sure you want to ${status} request #${id}?`, (confirmed) => {
+                if (confirmed) {
+                    tg.showAlert(`Request #${id} has been ${status}.`);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
