@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Rewards TMA</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Monetag SDK -->
+    <script src='https://libtl.com/sdk.js' data-zone='11219923' data-sdk='show_11219923' data-cfasync='false' async='async'></script>
+    
+    <!-- Firebase SDKs (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.1/firebase-database-compat.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .neon-border {
+            box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+            border: 1px solid rgba(34, 211, 238, 0.3);
+        }
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start p-4">
+
+    <!-- Auth Screen -->
+    <section id="auth-screen" class="w-full max-w-md mt-10">
+        <div class="glass p-8 rounded-3xl shadow-2xl text-center">
+            <h1 class="text-3xl font-bold mb-2 text-cyan-400">Welcome</h1>
+            <p class="text-gray-400 mb-8 text-sm">Join the most premium earning platform</p>
+            
+            <input type="text" id="auth-name" placeholder="Full Name" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 mb-4 focus:ring-2 focus:ring-cyan-500 outline-none">
+            <input type="email" id="auth-email" placeholder="Email Address" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 mb-6 focus:ring-2 focus:ring-cyan-500 outline-none">
+            
+            <button onclick="handleAuth()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-xl transition-all active:scale-95 shadow-lg">
+                Enter App
+            </button>
+        </div>
+    </section>
+
+    <!-- User Dashboard -->
+    <section id="user-dashboard" class="w-full max-w-md hidden space-y-6">
+        <!-- Header Card -->
+        <div class="glass p-6 rounded-3xl neon-border flex justify-between items-center">
+            <div>
+                <p class="text-gray-400 text-xs">Welcome back,</p>
+                <h2 id="user-display-name" class="text-xl font-bold text-white">User</h2>
+            </div>
+            <div class="text-right">
+                <p class="text-gray-400 text-xs">Total Balance</p>
+                <p class="text-2xl font-black text-cyan-400"><span id="user-balance">0</span> <span class="text-xs uppercase">Pts</span></p>
+            </div>
+        </div>
+
+        <!-- Ad Actions -->
+        <div class="grid grid-cols-1 gap-4">
+            <button onclick="watchManualAd()" class="glass p-6 rounded-3xl flex flex-col items-center justify-center hover:bg-slate-800 transition group">
+                <div class="w-12 h-12 bg-cyan-900 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                    <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <span class="font-bold">Watch Ad</span>
+                <span class="text-xs text-cyan-500">+10 Points</span>
+            </button>
+
+            <div class="glass p-6 rounded-3xl flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold">Auto Ad Mode</h3>
+                    <p class="text-xs text-gray-400">Every 30 seconds</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="auto-ad-toggle" class="sr-only peer" onchange="toggleAutoAd(this)">
+                    <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Withdrawal Form -->
+        <div class="glass p-6 rounded-3xl">
+            <h3 class="font-bold mb-4 text-center">Request Withdrawal</h3>
+            <div class="space-y-3">
+                <input type="number" id="withdraw-amount" placeholder="Amount (Min 500)" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm focus:ring-1 focus:ring-cyan-500 outline-none">
+                <select id="withdraw-method" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm outline-none">
+                    <option value="Bkash">Bkash</option>
+                    <option value="Nagad">Nagad</option>
+                </select>
+                <input type="text" id="withdraw-wallet" placeholder="Wallet Number" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm focus:ring-1 focus:ring-cyan-500 outline-none">
+                <button onclick="submitWithdrawal()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl transition-all">Submit Request</button>
+            </div>
+        </div>
+
+        <button onclick="logout()" class="w-full text-gray-500 text-sm py-4">Logout Account</button>
+    </section>
+
+    <!-- Admin Panel -->
+    <section id="admin-panel" class="w-full max-w-4xl hidden space-y-6">
+        <div class="flex justify-between items-center">
+            <h1 class="text-2xl font-black text-cyan-400">ADMIN PANEL</h1>
+            <button onclick="logout()" class="bg-red-900/30 text-red-400 px-4 py-1 rounded-lg text-xs border border-red-900">Exit</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-2 gap-4">
+            <div class="glass p-4 rounded-2xl text-center">
+                <p class="text-xs text-gray-400 uppercase tracking-widest">Total Users</p>
+                <p id="admin-total-users" class="text-2xl font-bold">0</p>
+            </div>
+            <div class="glass p-4 rounded-2xl text-center">
+                <p class="text-xs text-gray-400 uppercase tracking-widest">Pending Req</p>
+                <p id="admin-pending-req" class="text-2xl font-bold text-yellow-500">0</p>
+            </div>
+        </div>
+
+        <!-- Withdrawal Table -->
+        <div class="glass rounded-3xl overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-800 text-gray-400">
+                        <tr>
+                            <th class="p-4">User</th>
+                            <th class="p-4">Amount</th>
+                            <th class="p-4">Method</th>
+                            <th class="p-4">Wallet</th>
+                            <th class="p-4 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-request-list">
+                        <!-- Dynamic Rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // 1. Firebase Initialization
+        const firebaseConfig = {
+            apiKey: "AIzaSyCakigCMI5-e1gNPjbTm0Lcdzwk7Yn_S_g",
+            authDomain: "this-is-me-5413e.firebaseapp.com",
+            projectId: "this-is-me-5413e",
+            storageBucket: "this-is-me-5413e.firebasestorage.app",
+            messagingSenderId: "1020924214228",
+            appId: "1:1020924214228:web:6f7b31e67deb9031a1f441"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Global State
+        let currentUser = null;
+        let autoAdInterval = null;
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // 2. Auth & Navigation Logic
+        function handleAuth() {
+            const name = document.getElementById('auth-name').value;
+            const email = document.getElementById('auth-email').value;
+
+            if (!email) return alert("Email is required");
+
+            if (email === "admin@earn.com") {
+                const pass = prompt("Enter Admin Password:");
+                if (pass === "সোহান১২") {
+                    showScreen('admin-panel');
+                    loadAdminData();
+                    return;
+                } else {
+                    alert("Incorrect Password");
+                    return;
+                }
+            }
+
+            if (!name) return alert("Name is required");
+
+            // Regular User Auth
+            const userId = btoa(email).replace(/=/g, ''); // Simple ID generation
+            db.ref('users/' + userId).once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    currentUser = snapshot.val();
+                    currentUser.id = userId;
+                } else {
+                    currentUser = { id: userId, name: name, email: email, balance: 0 };
+                    db.ref('users/' + userId).set(currentUser);
+                }
+                setupUserDashboard();
+            });
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function setupUserDashboard() {
+            showScreen('user-dashboard');
+            document.getElementById('user-display-name').innerText = currentUser.name;
+            
+            // Listen for balance updates
+            db.ref('users/' + currentUser.id + '/balance').on('value', (snapshot) => {
+                const bal = snapshot.val() || 0;
+                document.getElementById('user-balance').innerText = bal;
+                currentUser.balance = bal;
+            });
+        }
+
+        function logout() {
+            location.reload();
+        }
+
+        // 3. Earning Logic
+        function watchManualAd() {
+            if (typeof show_11219923 === 'function') {
+                show_11219923().then(() => {
+                    updateBalance(10);
+                    alert("Success! 10 Points added.");
+                }).catch(err => {
+                    console.error("Ad failed", err);
+                    alert("Ad failed to load. Try again.");
+                });
+            } else {
+                alert("Ad SDK not ready.");
+            }
+        }
+
+        function toggleAutoAd(checkbox) {
+            if (checkbox.checked) {
+                alert("Auto Ad started. 5 Points every 30s.");
+                autoAdInterval = setInterval(() => {
+                    show_11219923().then(() => {
+                        updateBalance(5);
+                    });
+                }, 30000);
+            } else {
+                clearInterval(autoAdInterval);
+            }
+        }
+
+        function updateBalance(pts) {
+            const newBal = (currentUser.balance || 0) + pts;
+            db.ref('users/' + currentUser.id + '/balance').set(newBal);
+        }
+
+        // 4. Withdrawal Logic
+        function submitWithdrawal() {
+            const amount = parseInt(document.getElementById('withdraw-amount').value);
+            const method = document.getElementById('withdraw-method').value;
+            const wallet = document.getElementById('withdraw-wallet').value;
+
+            if (amount < 500) return alert("Minimum 500 points required");
+            if (currentUser.balance < amount) return alert("Insufficient balance");
+            if (!wallet) return alert("Enter wallet number");
+
+            const requestData = {
+                uid: currentUser.id,
+                name: currentUser.name,
+                email: currentUser.email,
+                amount: amount,
+                method: method,
+                wallet: wallet,
+                status: 'Pending',
+                timestamp: Date.now()
+            };
+
+            db.ref('withdrawals').push(requestData).then(() => {
+                alert("Request Submitted Successfully!");
+                document.getElementById('withdraw-amount').value = '';
+                document.getElementById('withdraw-wallet').value = '';
+            });
+        }
+
+        // 5. Admin Functionality
+        function loadAdminData() {
+            // Stats
+            db.ref('users').on('value', snap => {
+                document.getElementById('admin-total-users').innerText = snap.numChildren();
+            });
+
+            db.ref('withdrawals').on('value', snap => {
+                const list = document.getElementById('admin-request-list');
+                list.innerHTML = '';
+                let pendingCount = 0;
+
+                snap.forEach(child => {
+                    const req = child.val();
+                    const key = child.key;
+
+                    if (req.status === 'Pending') {
+                        pendingCount++;
+                        const row = `
+                            <tr class="border-b border-slate-800">
+                                <td class="p-4 font-bold text-xs">${req.name}<br><span class="text-gray-500 font-normal">${req.email}</span></td>
+                                <td class="p-4">${req.amount}</td>
+                                <td class="p-4 text-cyan-400">${req.method}</td>
+                                <td class="p-4">${req.wallet}</td>
+                                <td class="p-4 flex gap-2 justify-center">
+                                    <button onclick="processRequest('${key}', '${req.uid}', ${req.amount}, 'Approve')" class="bg-green-600 px-3 py-1 rounded text-xs">Approve</button>
+                                    <button onclick="processRequest('${key}', '${req.uid}', ${req.amount}, 'Reject')" class="bg-red-600 px-3 py-1 rounded text-xs">Reject</button>
+                                </td>
+                            </tr>
+                        `;
+                        list.innerHTML += row;
+                    }
+                });
+                document.getElementById('admin-pending-req').innerText = pendingCount;
+            });
+        }
+
+        function processRequest(reqId, userId, amount, action) {
+            if (action === 'Approve') {
+                // Fetch current user balance before deduction
+                db.ref('users/' + userId + '/balance').once('value', snap => {
+                    const currentBal = snap.val() || 0;
+                    if (currentBal >= amount) {
+                        db.ref('users/' + userId + '/balance').set(currentBal - amount);
+                        db.ref('withdrawals/' + reqId + '/status').set('Approved');
